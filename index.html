@@ -196,8 +196,9 @@ let currentParty = null;
 let expandedTypes = new Set(), allExpanded = false;
 
 // Filters
-let activeTypeFilters = new Set(); // donor type indices (empty = all)
-let activeYearFilters = new Set(); // year indices (empty = all)
+let activeTypeFilters = new Set();
+let activeYearFilters = new Set();
+let expandedOthers = new Set(); // track which "Others" groups are expanded
 
 async function init() {
   RAW = await (await fetch('tree-data.json')).json();
@@ -248,7 +249,15 @@ function buildFilteredTreeData(partyIdx) {
       const top = sorted.slice(0, 7).map(([n,v]) => ({name:n, value:Math.round(v*100)/100}));
       const rest = sorted.slice(7);
       if (rest.length > 0) {
-        top.push({name: rest.length+' Others', value: Math.round(rest.reduce((s,[,v])=>s+v,0)*100)/100, isGroup:true});
+        const othersKey = type; // unique key for this Others group
+        const isExpanded = expandedOthers.has(othersKey);
+        if (isExpanded) {
+          // Show all remaining donors
+          rest.forEach(([n,v]) => top.push({name:n, value:Math.round(v*100)/100}));
+          top.push({name: '▲ Show fewer', value: 0, isCollapse:true, othersKey});
+        } else {
+          top.push({name: rest.length+' Others ▼', value: Math.round(rest.reduce((s,[,v])=>s+v,0)*100)/100, isGroup:true, othersKey, othersCount:rest.length});
+        }
       }
       return { type, total: Math.round(typeTotal*100)/100, donors: top };
     })
@@ -346,6 +355,7 @@ function buildPartySelector() {
 function selectParty(party) {
   currentParty = party;
   expandedTypes.clear();
+  expandedOthers.clear();
   allExpanded = false;
   document.getElementById('expandAllBtn').textContent = 'Expand All';
   const color = PARTY_COLORS[party]||'#2B7BCE';
@@ -454,9 +464,18 @@ function renderTree() {
         const dx = (start+di+0.5)*scale;
         const dp = ((dn.value/td.total)*100);
         drawOrthLink(g, tx, typeY+nodeH, dx, donorY, partyColor);
-        const isClick = !dn.isGroup && DONORS && DONORS[dn.name];
-        const dg = drawNode(g, dx, donorY, {label:trunc(dn.name,18), fullName:dn.name, value:fmtGBP(dn.value), sub:dp>=0.1?dp.toFixed(1)+'%':'<0.1%', info:isClick, googleLink:!dn.isGroup, borderColor:partyColor}, nodeW, nodeH);
+        const isClick = !dn.isGroup && !dn.isCollapse && DONORS && DONORS[dn.name];
+        const isOthersBtn = dn.isGroup && dn.othersKey;
+        const isCollapseBtn = dn.isCollapse;
+        
+        let nodeOpts = {label:trunc(dn.name,18), fullName:dn.name, value:dn.value>0?fmtGBP(dn.value):'', sub:dp>=0.1?dp.toFixed(1)+'%':'', info:isClick, googleLink:!dn.isGroup&&!dn.isCollapse, borderColor:partyColor};
+        if (isOthersBtn) { nodeOpts.label = dn.othersCount+' Others'; nodeOpts.sub = '▼ click to expand'; }
+        if (isCollapseBtn) { nodeOpts.label = '▲ Show fewer'; nodeOpts.value = ''; nodeOpts.sub = ''; }
+        
+        const dg = drawNode(g, dx, donorY, nodeOpts, nodeW, nodeH);
         if (isClick) dg.style('cursor','pointer').on('click',()=>showDonorPanel(dn.name));
+        if (isOthersBtn) dg.style('cursor','pointer').on('click',()=>{expandedOthers.add(dn.othersKey);renderTree();});
+        if (isCollapseBtn) dg.style('cursor','pointer').on('click',()=>{expandedOthers.delete(dn.othersKey);renderTree();});
       });
     }
   });
