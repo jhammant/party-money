@@ -759,15 +759,25 @@ function renderConcentration() {
     <span class="conc-verdict" style="background:${mcColor}22;color:${mcColor}">${mcVerdict}</span>
   </div>`;
   
-  // Most grassroots
-  const grassroots = [...data].filter(d=>d.nDonors>=20).sort((a,b) => a.hhi - b.hhi)[0];
-  if (grassroots) {
-    const [grVerdict, grColor] = hhiVerdict(grassroots.hhi);
+  // Most diverse (lowest HHI)
+  const diverse = [...data].filter(d=>d.nDonors>=20).sort((a,b) => a.hhi - b.hhi)[0];
+  if (diverse) {
+    const [dvVerdict, dvColor] = hhiVerdict(diverse.hhi);
+    html += `<div class="conc-card" style="border-color:${diverse.color}33">
+      <h3 style="color:${diverse.color}">🔀 Most Diverse Donor Base</h3>
+      <div class="conc-value" style="color:${diverse.color}">${SHORT[diverse.party]||diverse.party}</div>
+      <div class="conc-desc">HHI of <strong>${diverse.hhi.toFixed(0)}</strong> — ${diverse.nDonors} unique donors. No single donor dominates. Widest spread of funding sources.</div>
+      <span class="conc-verdict" style="background:${dvColor}22;color:${dvColor}">${dvVerdict}</span>
+    </div>`;
+  }
+  
+  // Lowest median (most grassroots by donation size)
+  const grassroots = [...data].filter(d=>d.nDonors>=20).sort((a,b) => a.median - b.median)[0];
+  if (grassroots && grassroots.party !== (diverse&&diverse.party)) {
     html += `<div class="conc-card" style="border-color:${grassroots.color}33">
-      <h3 style="color:${grassroots.color}">🌱 Most Grassroots</h3>
+      <h3 style="color:${grassroots.color}">🌱 Smallest Typical Donation</h3>
       <div class="conc-value" style="color:${grassroots.color}">${SHORT[grassroots.party]||grassroots.party}</div>
-      <div class="conc-desc">HHI of <strong>${grassroots.hhi.toFixed(0)}</strong> — ${grassroots.nDonors} unique donors. Median donation: ${fmtGBP(grassroots.median)}. Most evenly distributed funding base.</div>
-      <span class="conc-verdict" style="background:${grColor}22;color:${grColor}">${grVerdict}</span>
+      <div class="conc-desc">Median donation just <strong>${fmtGBP(grassroots.median)}</strong> across ${grassroots.nDonors} donors. Average ${fmtGBP(grassroots.avgDonation)} — the most grassroots funding profile by donation size.</div>
     </div>`;
   }
   
