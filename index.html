@@ -791,6 +791,76 @@ function renderConcentration() {
   
   html += `</div>`;
   
+  // ── Key Insights — auto-detected outliers ──
+  const majors = data.filter(d => d.nDonors >= 50);
+  if (majors.length >= 3) {
+    html += `<h3 style="font-size:0.9rem;font-weight:700;margin:28px 0 12px;padding-left:4px">💡 Key Insights</h3>`;
+    html += `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:20px">`;
+    
+    // Highest single-donor dependency among major parties
+    const topDep = [...majors].sort((a,b) => b.topDonorPct - a.topDonorPct)[0];
+    const nextDep = [...majors].sort((a,b) => b.topDonorPct - a.topDonorPct)[1];
+    if (topDep && nextDep && topDep.topDonorPct > nextDep.topDonorPct * 1.5) {
+      html += `<div class="conc-card" style="border-color:${topDep.color}33">
+        <h3 style="color:${topDep.color}">🎯 Single Donor Dominance</h3>
+        <div class="conc-value" style="color:${topDep.color}">${topDep.topDonorPct.toFixed(0)}%</div>
+        <div class="conc-desc"><strong>${trunc(topDep.topDonorName,30)}</strong> accounts for ${topDep.topDonorPct.toFixed(1)}% of all ${SHORT[topDep.party]||topDep.party} funding. The next most-dependent major party's top donor is just ${nextDep.topDonorPct.toFixed(1)}%.</div>
+      </div>`;
+    }
+    
+    // Highest average donation
+    const topAvg = [...majors].sort((a,b) => b.avgDonation - a.avgDonation)[0];
+    const botAvg = [...majors].sort((a,b) => a.avgDonation - b.avgDonation)[0];
+    if (topAvg && botAvg && topAvg.avgDonation > botAvg.avgDonation * 2) {
+      html += `<div class="conc-card" style="border-color:${topAvg.color}33">
+        <h3 style="color:${topAvg.color}">💎 Highest Average Donation</h3>
+        <div class="conc-value" style="color:${topAvg.color}">${fmtGBP(topAvg.avgDonation)}</div>
+        <div class="conc-desc">${SHORT[topAvg.party]||topAvg.party}'s average donation is ${(topAvg.avgDonation/botAvg.avgDonation).toFixed(0)}x higher than ${SHORT[botAvg.party]||botAvg.party} (${fmtGBP(botAvg.avgDonation)}). Median: ${fmtGBP(topAvg.median)} vs ${fmtGBP(botAvg.median)}.</div>
+      </div>`;
+    }
+    
+    // Fewest donors for their funding level (£ per donor)
+    const fewest = [...majors].sort((a,b) => (b.total/b.nDonors) - (a.total/a.nDonors))[0];
+    const most = [...majors].sort((a,b) => (a.total/a.nDonors) - (b.total/b.nDonors))[0];
+    html += `<div class="conc-card" style="border-color:${fewest.color}33">
+      <h3 style="color:${fewest.color}">🏦 Fewest Donors per £M Raised</h3>
+      <div class="conc-value" style="color:${fewest.color}">${fewest.nDonors} donors</div>
+      <div class="conc-desc">${SHORT[fewest.party]||fewest.party} raised ${fmtGBP(fewest.total)} from just ${fewest.nDonors} donors — ${fmtGBP(fewest.total/fewest.nDonors)} each on average. ${SHORT[most.party]||most.party} needed ${most.nDonors} donors for ${fmtGBP(most.total)}.</div>
+    </div>`;
+    
+    // Most concentrated among major parties (HHI)
+    const topHHI = [...majors].sort((a,b) => b.hhi - a.hhi)[0];
+    const nextHHI = [...majors].sort((a,b) => b.hhi - a.hhi)[1];
+    if (topHHI && nextHHI) {
+      html += `<div class="conc-card" style="border-color:${topHHI.color}33">
+        <h3 style="color:${topHHI.color}">📊 Most Concentrated (Major Parties)</h3>
+        <div class="conc-value" style="color:${topHHI.color}">HHI ${topHHI.hhi.toFixed(0)}</div>
+        <div class="conc-desc">${SHORT[topHHI.party]||topHHI.party}'s donor concentration is ${(topHHI.hhi/nextHHI.hhi).toFixed(1)}x higher than ${SHORT[nextHHI.party]||nextHHI.party} (${nextHHI.hhi.toFixed(0)}). ${topHHI.hhi > 1000 ? 'By antitrust standards, this would be considered a moderately to highly concentrated market.' : ''}</div>
+      </div>`;
+    }
+    
+    // Highest median donation
+    const topMed = [...majors].sort((a,b) => b.median - a.median)[0];
+    const botMed = [...majors].sort((a,b) => a.median - b.median)[0];
+    if (topMed && botMed && topMed.median > botMed.median * 3) {
+      html += `<div class="conc-card" style="border-color:${topMed.color}33">
+        <h3 style="color:${topMed.color}">📈 Highest Median Donation</h3>
+        <div class="conc-value" style="color:${topMed.color}">${fmtGBP(topMed.median)}</div>
+        <div class="conc-desc">The typical ${SHORT[topMed.party]||topMed.party} donor gives ${fmtGBP(topMed.median)} — that's ${(topMed.median/botMed.median).toFixed(0)}x the typical ${SHORT[botMed.party]||botMed.party} donor (${fmtGBP(botMed.median)}).</div>
+      </div>`;
+    }
+    
+    // Most donors (broadest base)
+    const broadest = [...majors].sort((a,b) => b.nDonors - a.nDonors)[0];
+    html += `<div class="conc-card" style="border-color:${broadest.color}33">
+      <h3 style="color:${broadest.color}">🌍 Broadest Donor Base</h3>
+      <div class="conc-value" style="color:${broadest.color}">${broadest.nDonors.toLocaleString()} donors</div>
+      <div class="conc-desc">${SHORT[broadest.party]||broadest.party} has the most unique donors of any major party, raising ${fmtGBP(broadest.total)} total. Top 10 donors account for ${broadest.top10pct.toFixed(1)}% of the total.</div>
+    </div>`;
+    
+    html += `</div>`;
+  }
+  
   // ── Metric explainer ──
   html += `<div class="metric-explainer">
     <h4>📖 What Do These Metrics Mean?</h4>
