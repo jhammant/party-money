@@ -749,8 +749,8 @@ function renderConcentration() {
   // ── Summary cards ──
   html += `<div class="conc-grid" style="margin-top:28px">`;
   
-  // Most concentrated
-  const mostConc = [...data].sort((a,b) => b.hhi - a.hhi)[0];
+  // Most concentrated (exclude tiny parties with <10 donors)
+  const mostConc = [...data].filter(d=>d.nDonors>=10).sort((a,b) => b.hhi - a.hhi)[0];
   const [mcVerdict, mcColor] = hhiVerdict(mostConc.hhi);
   html += `<div class="conc-card" style="border-color:${mostConc.color}33">
     <h3 style="color:${mostConc.color}">🎯 Most Concentrated</h3>
