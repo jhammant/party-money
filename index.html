@@ -20,32 +20,60 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:var(--bg); color:var(--text-light); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; }
 
-.header { padding:24px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
-.header h1 { font-size:1.5rem; font-weight:700; }
+.header { padding:24px 32px 12px; }
+.header h1 { font-size:2rem; font-weight:700; margin-bottom:4px; }
 .header h1 span { color:var(--node-border); }
+.header .subtitle { color:var(--text-muted); font-size:0.9rem; max-width:700px; line-height:1.6; margin-bottom:16px; }
 .source { color:var(--text-muted); font-size:0.75rem; }
 .source a { color:var(--node-border); text-decoration:none; }
 
-.party-selector { display:flex; gap:8px; padding:0 32px 24px; flex-wrap:wrap; }
+/* Summary cards */
+.summary-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; padding:20px 32px; }
+.summary-card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:16px; }
+.summary-card .party-name { font-size:0.85rem; font-weight:600; margin-bottom:4px; }
+.summary-card .party-total { font-size:1.3rem; font-weight:700; }
+.summary-card .party-detail { color:var(--text-muted); font-size:0.75rem; margin-top:4px; }
+.summary-card .party-bar { height:4px; border-radius:2px; margin-top:8px; opacity:0.7; }
+
+/* Controls */
+.controls { display:flex; gap:8px; padding:20px 32px 8px; flex-wrap:wrap; align-items:center; }
+.party-selector { display:flex; gap:8px; flex-wrap:wrap; flex:1; }
 .party-btn { background:rgba(255,255,255,0.08); border:2px solid transparent; border-radius:8px; color:var(--text-light); padding:8px 16px; cursor:pointer; font-size:0.85rem; font-weight:500; transition:all 0.2s; }
 .party-btn:hover { background:rgba(255,255,255,0.15); }
-.party-btn.active { border-color:var(--node-border); background:rgba(43,123,206,0.15); }
+.party-btn.active { border-color:var(--node-border); }
+.expand-all-btn { background:rgba(43,123,206,0.15); border:1px solid rgba(43,123,206,0.3); border-radius:8px; color:var(--node-border); padding:8px 16px; cursor:pointer; font-size:0.8rem; font-weight:500; white-space:nowrap; }
+.expand-all-btn:hover { background:rgba(43,123,206,0.25); }
 
-.hint { text-align:center; color:var(--text-muted); font-size:0.8rem; margin-bottom:16px; }
+.hint { text-align:center; color:var(--text-muted); font-size:0.8rem; padding:8px 32px 16px; }
 
 #tree-container { width:100%; overflow-x:auto; padding:0 16px 40px; }
 #tree-svg { display:block; margin:0 auto; }
 
 .node rect { fill:var(--node-fill); stroke:var(--node-border); stroke-width:2px; rx:10; ry:10; cursor:pointer; transition:filter 0.2s; }
 .node rect:hover { filter:drop-shadow(0 0 8px rgba(43,123,206,0.4)); }
-.node .label { fill:var(--text-dark); font-size:12px; font-weight:600; text-anchor:middle; pointer-events:none; }
-.node .value { fill:var(--text-blue); font-size:11px; font-weight:500; text-anchor:middle; pointer-events:none; }
-.node .pct { fill:var(--text-blue); font-size:10px; font-weight:400; text-anchor:middle; pointer-events:none; opacity:0.7; }
-.node .expand-hint { fill:var(--text-blue); font-size:10px; text-anchor:middle; pointer-events:none; opacity:0.6; }
+.node .label { fill:var(--text-dark); font-size:11px; font-weight:600; text-anchor:middle; pointer-events:none; }
+.node .value { fill:var(--text-blue); font-size:10.5px; font-weight:500; text-anchor:middle; pointer-events:none; }
+.node .pct { fill:var(--text-blue); font-size:9.5px; font-weight:400; text-anchor:middle; pointer-events:none; opacity:0.7; }
+.node .expand-hint { fill:var(--text-blue); font-size:9px; text-anchor:middle; pointer-events:none; opacity:0.6; }
+.node .google-link { fill:var(--text-blue); font-size:9px; text-anchor:middle; cursor:pointer; opacity:0.5; }
+.node .google-link:hover { opacity:1; text-decoration:underline; }
 .node.root rect { stroke-width:3px; }
-.node.root .label { font-size:14px; font-weight:700; }
-.node.root .value { font-size:13px; font-weight:600; }
+.node.root .label { font-size:13px; font-weight:700; }
+.node.root .value { font-size:12px; font-weight:600; }
 .link { fill:none; stroke:var(--line-color); stroke-width:1.5px; }
+
+/* Section divider */
+.section-divider { text-align:center; padding:40px 32px 20px; }
+.section-divider h2 { font-size:1.3rem; font-weight:700; margin-bottom:6px; }
+.section-divider p { color:var(--text-muted); font-size:0.85rem; }
+
+/* Bubble chart */
+#bubble-container { padding:0 32px 40px; }
+#bubble-svg { display:block; margin:0 auto; background:rgba(255,255,255,0.02); border-radius:16px; }
+.bubble-tooltip { position:fixed; background:var(--panel-bg); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:10px 14px; font-size:0.8rem; pointer-events:none; z-index:50; display:none; max-width:280px; }
+.bubble-tooltip .tt-name { font-weight:600; margin-bottom:2px; }
+.bubble-tooltip .tt-amount { color:var(--node-border); font-weight:700; }
+.bubble-tooltip .tt-party { color:var(--text-muted); font-size:0.75rem; }
 
 /* Donor detail panel */
 .donor-panel-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100; display:none; }
@@ -53,13 +81,15 @@ body { background:var(--bg); color:var(--text-light); font-family:-apple-system,
 .donor-panel { background:var(--panel-bg); border:2px solid var(--node-border); border-radius:16px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; padding:28px; position:relative; }
 .donor-panel .close-btn { position:absolute; top:12px; right:16px; background:none; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer; line-height:1; }
 .donor-panel .close-btn:hover { color:var(--text-light); }
-.donor-panel h2 { font-size:1.2rem; font-weight:700; margin-bottom:4px; padding-right:30px; }
-.donor-panel .donor-meta { color:var(--text-muted); font-size:0.8rem; margin-bottom:16px; }
+.donor-panel h2 { font-size:1.2rem; font-weight:700; margin-bottom:2px; padding-right:30px; }
+.donor-panel .google-search { color:var(--node-border); font-size:0.8rem; text-decoration:none; margin-bottom:12px; display:inline-block; }
+.donor-panel .google-search:hover { text-decoration:underline; }
+.donor-panel .donor-meta { color:var(--text-muted); font-size:0.8rem; margin-bottom:12px; }
 .donor-panel .donor-total { font-size:1.4rem; font-weight:700; color:var(--node-border); margin-bottom:4px; }
 .donor-panel .party-tag { display:inline-block; padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:600; margin:2px 4px 2px 0; }
 .donor-panel h3 { font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin:16px 0 8px; }
 .donations-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
-.donations-table th { text-align:left; color:var(--text-muted); font-weight:500; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.03em; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.1); }
+.donations-table th { text-align:left; color:var(--text-muted); font-weight:500; font-size:0.75rem; text-transform:uppercase; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.1); }
 .donations-table td { padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); }
 .donations-table .amt { color:var(--node-border); font-weight:600; text-align:right; white-space:nowrap; }
 .donations-table .date { color:var(--text-muted); white-space:nowrap; }
@@ -68,10 +98,13 @@ body { background:var(--bg); color:var(--text-light); font-family:-apple-system,
 .footer a { color:var(--node-border); text-decoration:none; }
 
 @media (max-width:768px) {
-  .header { padding:16px; }
-  .party-selector { padding:0 16px 16px; }
+  .header { padding:16px 16px 8px; }
+  .summary-grid { padding:12px 16px; grid-template-columns:repeat(2, 1fr); }
+  .controls { padding:12px 16px 4px; }
   .party-btn { padding:6px 10px; font-size:0.75rem; }
   .donor-panel { padding:20px; }
+  .section-divider { padding:30px 16px 16px; }
+  #bubble-container { padding:0 16px 30px; }
 }
 </style>
 </head>
@@ -79,14 +112,35 @@ body { background:var(--bg); color:var(--text-light); font-family:-apple-system,
 
 <div class="header">
   <h1>💰 Party <span>Money</span></h1>
-  <div class="source">Data: <a href="https://search.electoralcommission.org.uk/" target="_blank">The Electoral Commission</a> · 2022–2026</div>
+  <p class="subtitle">Who funds UK politics? Explore every donation to every political party since 2022, from the Electoral Commission's public register. Click to drill down into individual donors and follow the money.</p>
+  <div class="source">Data: <a href="https://search.electoralcommission.org.uk/" target="_blank">The Electoral Commission</a> · 14,062 donations · 2022–2026</div>
 </div>
 
-<div class="party-selector" id="partySelector"></div>
-<p class="hint">Click a category to expand · Click a donor name for full details</p>
+<div class="summary-grid" id="summaryGrid"></div>
+
+<div class="section-divider">
+  <h2>🌳 Donation Tree</h2>
+  <p>Select a party, then click categories to expand. Click any donor for full details.</p>
+</div>
+
+<div class="controls">
+  <div class="party-selector" id="partySelector"></div>
+  <button class="expand-all-btn" id="expandAllBtn" onclick="toggleExpandAll()">Expand All</button>
+</div>
+
 <div id="tree-container">
   <svg id="tree-svg"></svg>
 </div>
+
+<div class="section-divider">
+  <h2>🫧 Bubble Chart</h2>
+  <p>Every donor sized by total amount. Hover for details, click for full history.</p>
+</div>
+
+<div id="bubble-container">
+  <svg id="bubble-svg"></svg>
+</div>
+<div class="bubble-tooltip" id="bubbleTooltip"></div>
 
 <div class="donor-panel-overlay" id="donorOverlay">
   <div class="donor-panel" id="donorPanel">
@@ -141,18 +195,63 @@ function fmtFull(v) {
 function truncate(s, max) {
   return s.length > max ? s.substring(0, max-1) + '…' : s;
 }
+function googleUrl(name) {
+  return 'https://www.google.com/search?q=' + encodeURIComponent(name + ' UK political donor');
+}
 
 let DATA = null, DONORS = null, currentParty = null;
 let expandedTypes = new Set();
+let allExpanded = false;
 
 async function init() {
   const raw = await (await fetch('tree-data.json')).json();
   DATA = raw.parties;
   DONORS = raw.donors;
   
+  buildSummary();
+  buildPartySelector();
+  const parties = Object.keys(DATA).sort((a,b) => DATA[b].total - DATA[a].total);
+  selectParty(parties[0]);
+  renderBubbleChart();
+}
+
+function buildSummary() {
+  const grid = document.getElementById('summaryGrid');
+  const parties = Object.keys(DATA).sort((a,b) => DATA[b].total - DATA[a].total);
+  const maxTotal = DATA[parties[0]].total;
+  
+  // Grand total card first
+  const grandTotal = Object.values(DATA).reduce((s,p) => s + p.total, 0);
+  const grandCount = Object.values(DATA).reduce((s,p) => s + p.count, 0);
+  grid.innerHTML = `<div class="summary-card" style="border-color:rgba(43,123,206,0.3)">
+    <div class="party-name" style="color:var(--node-border)">All Parties</div>
+    <div class="party-total" style="color:var(--node-border)">${fmtGBP(grandTotal)}</div>
+    <div class="party-detail">${grandCount.toLocaleString()} donations · ${parties.length} parties</div>
+  </div>`;
+  
+  parties.slice(0, 7).forEach(p => {
+    const d = DATA[p];
+    const color = PARTY_COLORS[p] || '#888';
+    const pct = (d.total / maxTotal * 100).toFixed(0);
+    // Find top donor
+    let topDonor = '';
+    let topDonorVal = 0;
+    d.types.forEach(t => t.donors.forEach(dn => {
+      if (dn.value > topDonorVal && !dn.isGroup) { topDonorVal = dn.value; topDonor = dn.name; }
+    }));
+    
+    grid.innerHTML += `<div class="summary-card" style="border-color:${color}33;cursor:pointer" onclick="selectParty('${p.replace(/'/g,"\\'")}')">
+      <div class="party-name" style="color:${color}">${SHORT_NAMES[p]||p}</div>
+      <div class="party-total">${fmtGBP(d.total)}</div>
+      <div class="party-detail">${d.count.toLocaleString()} donations · Top: ${truncate(topDonor,25)}</div>
+      <div class="party-bar" style="width:${pct}%;background:${color}"></div>
+    </div>`;
+  });
+}
+
+function buildPartySelector() {
   const selector = document.getElementById('partySelector');
   const parties = Object.keys(DATA).sort((a,b) => DATA[b].total - DATA[a].total);
-  
   parties.forEach(party => {
     const btn = document.createElement('button');
     btn.className = 'party-btn';
@@ -161,25 +260,42 @@ async function init() {
     btn.dataset.party = party;
     selector.appendChild(btn);
   });
-  
-  selectParty(parties[0]);
 }
 
 function selectParty(party) {
   currentParty = party;
   expandedTypes.clear();
+  allExpanded = false;
+  document.getElementById('expandAllBtn').textContent = 'Expand All';
+  const color = PARTY_COLORS[party] || '#2B7BCE';
   document.querySelectorAll('.party-btn').forEach(b => {
     const isActive = b.dataset.party === party;
     b.classList.toggle('active', isActive);
-    b.style.borderColor = isActive ? (PARTY_COLORS[party] || '#2B7BCE') : 'transparent';
-    b.style.background = isActive ? (PARTY_COLORS[party] || '#2B7BCE') + '25' : 'rgba(255,255,255,0.08)';
+    b.style.borderColor = isActive ? color : 'transparent';
+    b.style.background = isActive ? color + '25' : 'rgba(255,255,255,0.08)';
   });
+  renderTree();
+}
+
+function toggleExpandAll() {
+  const d = DATA[currentParty];
+  if (allExpanded) {
+    expandedTypes.clear();
+    allExpanded = false;
+    document.getElementById('expandAllBtn').textContent = 'Expand All';
+  } else {
+    d.types.forEach(t => expandedTypes.add(t.type));
+    allExpanded = true;
+    document.getElementById('expandAllBtn').textContent = 'Collapse All';
+  }
   renderTree();
 }
 
 function toggleType(typeName) {
   if (expandedTypes.has(typeName)) expandedTypes.delete(typeName);
   else expandedTypes.add(typeName);
+  allExpanded = expandedTypes.size === DATA[currentParty].types.length;
+  document.getElementById('expandAllBtn').textContent = allExpanded ? 'Collapse All' : 'Expand All';
   renderTree();
 }
 
@@ -187,27 +303,20 @@ function showDonorPanel(donorName) {
   const d = DONORS[donorName];
   if (!d) return;
   const content = document.getElementById('donorContent');
-  
   let partyTags = d.parties.map(p => {
     const color = PARTY_COLORS[p] || '#888';
     return `<span class="party-tag" style="background:${color}22;color:${color};border:1px solid ${color}44">${SHORT_NAMES[p]||p}</span>`;
   }).join('');
-  
   let meta = [d.status, d.postcode, d.companyNum ? `Co. #${d.companyNum}` : ''].filter(Boolean).join(' · ');
-  
   let rows = d.donations.map(don => {
     const pc = PARTY_COLORS[don.party] || '#888';
     return `<tr><td class="date">${don.date}</td><td style="color:${pc}">${SHORT_NAMES[don.party]||don.party}</td><td style="color:var(--text-muted);font-size:0.8rem">${don.type}${don.nature?' · '+don.nature:''}</td><td class="amt">${fmtFull(don.value)}</td></tr>`;
   }).join('');
-  
-  content.innerHTML = `<h2>${donorName}</h2><div class="donor-meta">${meta}</div><div class="donor-total">${fmtFull(d.total)}</div><div class="donor-meta">${d.count} donation${d.count!==1?'s':''} across ${d.parties.length} part${d.parties.length!==1?'ies':'y'}</div><div style="margin-bottom:16px">${partyTags}</div><h3>All Donations</h3><table class="donations-table"><thead><tr><th>Date</th><th>Party</th><th>Type</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows}</tbody></table>`;
-  
+  content.innerHTML = `<h2>${donorName}</h2><a class="google-search" href="${googleUrl(donorName)}" target="_blank">🔍 Google this donor</a><div class="donor-meta">${meta}</div><div class="donor-total">${fmtFull(d.total)}</div><div class="donor-meta">${d.count} donation${d.count!==1?'s':''} across ${d.parties.length} part${d.parties.length!==1?'ies':'y'}</div><div style="margin-bottom:16px">${partyTags}</div><h3>All Donations</h3><table class="donations-table"><thead><tr><th>Date</th><th>Party</th><th>Type</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows}</tbody></table>`;
   document.getElementById('donorOverlay').classList.add('visible');
 }
 
-function closePanel() {
-  document.getElementById('donorOverlay').classList.remove('visible');
-}
+function closePanel() { document.getElementById('donorOverlay').classList.remove('visible'); }
 document.getElementById('donorOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closePanel(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
 
@@ -218,16 +327,9 @@ function renderTree() {
   const svg = d3.select('#tree-svg');
   svg.selectAll('*').remove();
   
-  const nodeW = 155, nodeH = 56;
-  const vGap = 70;
-  const hGapType = 12;
-  const hGapDonor = 8;
-  
-  // Build layout manually for better control
+  const nodeW = 170, nodeH = 62, vGap = 70, hGapType = 16;
   const types = d.types;
-  const typeCount = types.length;
   
-  // Calculate how many columns we need at the donor level for expanded types
   let totalDonorCols = 0;
   let typeColSpans = [];
   types.forEach(t => {
@@ -237,84 +339,77 @@ function renderTree() {
     totalDonorCols += cols;
   });
   
-  const maxCols = Math.max(typeCount, totalDonorCols);
-  const totalW = maxCols * (nodeW + hGapType) + 60;
-  
-  // Determine levels
+  const maxCols = Math.max(types.length, totalDonorCols);
+  const colW = nodeW + hGapType;
+  const totalW = Math.max(maxCols * colW + 80, 600);
   const hasExpanded = expandedTypes.size > 0;
   const levels = hasExpanded ? 3 : 2;
-  const totalH = levels * (nodeH + vGap) + 60;
+  const totalH = levels * (nodeH + vGap) + 80;
   
-  svg.attr('width', Math.max(totalW, 600)).attr('height', totalH);
-  const g = svg.append('g').attr('transform', 'translate(30, 30)');
+  svg.attr('width', totalW).attr('height', totalH);
+  const g = svg.append('g').attr('transform', 'translate(40, 30)');
   
-  // Root position
-  const rootX = (totalW - 60) / 2;
+  const rootX = (totalW - 80) / 2;
   const rootY = 0;
-  
-  // Type positions — spread evenly, but respect expanded widths
-  let typePositions = [];
-  let cursor = 0;
-  types.forEach((t, i) => {
-    const span = typeColSpans[i];
-    const centerCol = cursor + span / 2;
-    typePositions.push(centerCol);
-    cursor += span;
-  });
-  
-  // Normalize to pixel positions
-  const colW = (totalW - 60) / totalDonorCols;
   const typeY = nodeH + vGap;
   
-  // Draw root
+  // Type positions
+  let cursor = 0;
+  let typePositions = [];
+  types.forEach((t, i) => {
+    const span = typeColSpans[i];
+    typePositions.push(cursor + span / 2);
+    cursor += span;
+  });
+  const scale = (totalW - 80) / (totalDonorCols || types.length);
+  
+  // Root node — use party color
   drawNode(g, rootX, rootY, {
     label: SHORT_NAMES[party] || party,
     value: fmtFull(d.total),
     sub: d.count.toLocaleString() + ' donations',
     isRoot: true,
     borderColor: partyColor,
-  }, nodeW + 20, nodeH);
+    labelColor: partyColor,
+  }, nodeW + 30, nodeH);
   
-  // Draw types and connections
   types.forEach((t, i) => {
-    const tx = typePositions[i] * colW;
+    const tx = typePositions[i] * scale;
     const expanded = expandedTypes.has(t.type);
     const pctStr = ((t.total / d.total) * 100).toFixed(1) + '%';
     
-    // Line from root to type
-    drawOrthLink(g, rootX, rootY + nodeH, tx, typeY);
+    drawOrthLink(g, rootX, rootY + nodeH, tx, typeY, partyColor);
     
-    // Type node
     const typeG = drawNode(g, tx, typeY, {
       label: t.type,
       value: fmtGBP(t.total),
       sub: pctStr,
-      expandHint: expanded ? '▲' : '▼ ' + t.donors.length,
+      expandHint: expanded ? '▲ collapse' : '▼ ' + t.donors.length + ' donors',
+      borderColor: partyColor,
     }, nodeW, nodeH);
-    
     typeG.style('cursor', 'pointer').on('click', () => toggleType(t.type));
     
-    // Draw donors if expanded
     if (expanded) {
       const donorY = typeY + nodeH + vGap;
-      const donorCount = t.donors.length;
-      // Find the starting column for this type's donors
       let startCol = 0;
       for (let j = 0; j < i; j++) startCol += typeColSpans[j];
       
       t.donors.forEach((donor, di) => {
-        const dx = (startCol + di + 0.5) * colW;
+        const dx = (startCol + di + 0.5) * scale;
         const donorPct = ((donor.value / d.total) * 100);
         const pctLabel = donorPct >= 0.1 ? donorPct.toFixed(1) + '%' : '<0.1%';
         
-        drawOrthLink(g, tx, typeY + nodeH, dx, donorY);
+        drawOrthLink(g, tx, typeY + nodeH, dx, donorY, partyColor);
         
         const isClickable = !donor.isGroup && DONORS && DONORS[donor.name];
         const donorG = drawNode(g, dx, donorY, {
-          label: truncate(donor.name, 20),
+          label: truncate(donor.name, 18),
+          fullName: donor.name,
           value: fmtGBP(donor.value),
           sub: pctLabel,
           info: isClickable,
+          googleLink: !donor.isGroup,
+          borderColor: partyColor,
         }, nodeW, nodeH);
         
         if (isClickable) {
@@ -336,47 +431,156 @@ function drawNode(parent, cx, y, opts, w, h) {
     .attr('stroke', opts.borderColor || '#2B7BCE')
     .attr('stroke-width', opts.isRoot ? 3 : 2);
   
-  const hasThreeLines = opts.sub && opts.expandHint;
-  const line1Y = hasThreeLines ? h/2 - 12 : (opts.sub ? h/2 - 8 : h/2 - 2);
-  const line2Y = hasThreeLines ? h/2 + 2 : h/2 + 8;
+  const hasExpand = !!opts.expandHint;
+  const hasGoogle = opts.googleLink;
+  const lines = [opts.label, opts.value, opts.sub, opts.expandHint].filter(Boolean).length;
+  const startY = h/2 - (lines * 6) + 4;
   
+  let yOff = startY;
+  
+  // Label
   ng.append('text').attr('class', 'label')
-    .attr('x', w/2).attr('y', line1Y)
+    .attr('x', w/2).attr('y', yOff)
+    .attr('fill', opts.labelColor || '#000')
     .text(opts.label);
+  yOff += 14;
   
+  // Value
   ng.append('text').attr('class', 'value')
-    .attr('x', w/2).attr('y', line2Y)
+    .attr('x', w/2).attr('y', yOff)
+    .attr('fill', opts.borderColor || '#2B7BCE')
     .text(opts.value);
+  yOff += 12;
   
+  // Sub (percentage)
   if (opts.sub) {
     ng.append('text').attr('class', 'pct')
-      .attr('x', w/2).attr('y', hasThreeLines ? h/2 + 14 : h/2 + 20)
+      .attr('x', w/2).attr('y', yOff)
+      .attr('fill', opts.borderColor || '#2B7BCE')
       .text(opts.sub);
+    yOff += 12;
   }
   
+  // Expand hint
   if (opts.expandHint) {
     ng.append('text').attr('class', 'expand-hint')
-      .attr('x', w/2).attr('y', h/2 + 26)
+      .attr('x', w/2).attr('y', yOff)
       .text(opts.expandHint);
   }
   
+  // Info icon
   if (opts.info) {
     ng.append('text')
-      .attr('x', w - 8).attr('y', 14)
+      .attr('x', w - 10).attr('y', 14)
       .attr('text-anchor', 'end')
-      .attr('fill', '#2B7BCE').attr('font-size', '10px')
-      .attr('opacity', 0.5).attr('pointer-events', 'none')
-      .text('ⓘ');
+      .attr('fill', opts.borderColor || '#2B7BCE')
+      .attr('font-size', '10px').attr('opacity', 0.5)
+      .attr('pointer-events', 'none').text('ⓘ');
+  }
+  
+  // Google link icon
+  if (opts.googleLink && opts.fullName) {
+    const link = ng.append('a')
+      .attr('href', googleUrl(opts.fullName))
+      .attr('target', '_blank');
+    link.append('text')
+      .attr('x', 10).attr('y', 14)
+      .attr('fill', opts.borderColor || '#2B7BCE')
+      .attr('font-size', '9px').attr('opacity', 0.4)
+      .text('🔍');
+    // Stop click propagation so it doesn't open the panel
+    link.on('click', (e) => e.stopPropagation());
   }
   
   return ng;
 }
 
-function drawOrthLink(parent, x1, y1, x2, y2) {
+function drawOrthLink(parent, x1, y1, x2, y2, color) {
   const midY = (y1 + y2) / 2;
   parent.append('path')
     .attr('class', 'link')
+    .attr('stroke', color ? color + '60' : 'rgba(255,255,255,0.5)')
     .attr('d', `M${x1},${y1} V${midY} H${x2} V${y2}`);
+}
+
+// ===== BUBBLE CHART =====
+function renderBubbleChart() {
+  const svg = d3.select('#bubble-svg');
+  const tooltip = document.getElementById('bubbleTooltip');
+  const width = Math.min(window.innerWidth - 64, 1200);
+  const height = Math.min(600, width * 0.6);
+  svg.attr('width', width).attr('height', height);
+  
+  // Build flat donor list with party colors
+  const bubbleData = [];
+  Object.entries(DATA).forEach(([party, d]) => {
+    const color = PARTY_COLORS[party] || '#888';
+    d.types.forEach(t => {
+      t.donors.forEach(donor => {
+        if (!donor.isGroup && donor.value >= 50000) {
+          bubbleData.push({
+            name: donor.name,
+            value: donor.value,
+            party,
+            color,
+          });
+        }
+      });
+    });
+  });
+  
+  const pack = d3.pack()
+    .size([width - 4, height - 4])
+    .padding(2);
+  
+  const root = d3.hierarchy({children: bubbleData}).sum(d => d.value);
+  pack(root);
+  
+  const node = svg.selectAll('.bubble')
+    .data(root.leaves())
+    .join('g')
+    .attr('class', 'bubble')
+    .attr('transform', d => `translate(${d.x + 2},${d.y + 2})`);
+  
+  node.append('circle')
+    .attr('r', d => d.r)
+    .attr('fill', d => d.data.color + 'cc')
+    .attr('stroke', d => d.data.color)
+    .attr('stroke-width', 1)
+    .style('cursor', 'pointer')
+    .on('mouseover', (e, d) => {
+      tooltip.style.display = 'block';
+      tooltip.innerHTML = `<div class="tt-name">${d.data.name}</div><div class="tt-amount">${fmtFull(d.data.value)}</div><div class="tt-party">${SHORT_NAMES[d.data.party]||d.data.party}</div>`;
+    })
+    .on('mousemove', (e) => {
+      tooltip.style.left = (e.clientX + 12) + 'px';
+      tooltip.style.top = (e.clientY - 10) + 'px';
+    })
+    .on('mouseout', () => { tooltip.style.display = 'none'; })
+    .on('click', (e, d) => {
+      if (DONORS[d.data.name]) showDonorPanel(d.data.name);
+    });
+  
+  // Labels for big bubbles
+  node.filter(d => d.r > 25)
+    .append('text')
+    .attr('text-anchor', 'middle')
+    .attr('dy', '-0.2em')
+    .attr('fill', '#fff')
+    .attr('font-size', d => Math.min(d.r / 4, 11) + 'px')
+    .attr('font-weight', 600)
+    .attr('pointer-events', 'none')
+    .text(d => truncate(d.data.name, Math.floor(d.r / 4)));
+  
+  node.filter(d => d.r > 25)
+    .append('text')
+    .attr('text-anchor', 'middle')
+    .attr('dy', '1em')
+    .attr('fill', '#fff')
+    .attr('font-size', d => Math.min(d.r / 5, 9) + 'px')
+    .attr('opacity', 0.8)
+    .attr('pointer-events', 'none')
+    .text(d => fmtGBP(d.data.value));
 }
 
 init();
