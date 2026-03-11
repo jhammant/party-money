@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Party Money — UK Political Donations 2022-2026</title>
+<meta property="og:title" content="Party Money — Who Funds UK Politics?">
+<meta property="og:description" content="Interactive explorer of £309M in UK political donations (2022-2026). Follow the money — every party, every donor, from the Electoral Commission.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhammant.github.io/party-money/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Party Money — Who Funds UK Politics?">
+<meta name="twitter:description" content="£309M in political donations visualised. Every party, every donor, every pound.">
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <style>
 :root {
@@ -27,6 +34,17 @@ body { background:var(--bg); color:var(--text-light); font-family:-apple-system,
 .source { color:var(--text-muted); font-size:0.75rem; }
 .source a { color:var(--node-border); text-decoration:none; }
 
+/* Share bar */
+.share-bar { display:flex; gap:8px; padding:12px 32px 0; flex-wrap:wrap; align-items:center; }
+.share-btn { display:inline-flex; align-items:center; gap:5px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:var(--text-muted); padding:6px 14px; cursor:pointer; font-size:0.78rem; font-weight:500; text-decoration:none; transition:all 0.15s; }
+.share-btn:hover { background:rgba(255,255,255,0.12); color:var(--text-light); }
+.share-btn.x-btn { background:rgba(29,155,240,0.1); border-color:rgba(29,155,240,0.25); color:#1d9bf0; }
+.share-btn.x-btn:hover { background:rgba(29,155,240,0.2); }
+.share-btn.li-btn { background:rgba(0,119,181,0.1); border-color:rgba(0,119,181,0.25); color:#0077B5; }
+.share-btn.li-btn:hover { background:rgba(0,119,181,0.2); }
+.share-btn.copy-btn.copied { background:rgba(106,176,35,0.15); border-color:rgba(106,176,35,0.3); color:#6AB023; }
+.share-toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--panel-bg); border:1px solid var(--node-border); border-radius:10px; padding:10px 20px; font-size:0.85rem; z-index:200; display:none; }
+
 .summary-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; padding:20px 32px; }
 .summary-card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:14px; cursor:pointer; transition:border-color 0.2s; }
 .summary-card:hover { border-color:rgba(255,255,255,0.2); }
@@ -37,7 +55,7 @@ body { background:var(--bg); color:var(--text-light); font-family:-apple-system,
 
 .section-divider { text-align:center; padding:36px 32px 16px; }
 .section-divider h2 { font-size:1.3rem; font-weight:700; margin-bottom:4px; }
-.section-divider p { color:var(--text-muted); font-size:0.85rem; }
+.section-divider p { color:var(--text-muted); font-size:0.85rem; max-width:650px; margin:0 auto; }
 
 /* Filters */
 .filters { display:flex; gap:8px; padding:8px 32px 16px; flex-wrap:wrap; align-items:center; }
@@ -80,6 +98,28 @@ body { background:var(--bg); color:var(--text-light); font-family:-apple-system,
 .bubble-tooltip .tt-amount { color:var(--node-border); font-weight:700; }
 .bubble-tooltip .tt-party { color:var(--text-muted); font-size:0.75rem; }
 
+/* Concentration section */
+#concentration-container { padding:0 32px 40px; }
+.conc-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:16px; margin-bottom:24px; }
+.conc-card { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:18px 20px; }
+.conc-card h3 { font-size:0.85rem; font-weight:700; margin-bottom:4px; }
+.conc-card .conc-value { font-size:1.6rem; font-weight:800; margin-bottom:2px; }
+.conc-card .conc-desc { color:var(--text-muted); font-size:0.78rem; line-height:1.5; }
+.conc-card .conc-verdict { margin-top:6px; font-size:0.75rem; font-weight:600; padding:3px 10px; border-radius:12px; display:inline-block; }
+.conc-party-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+.conc-party-row:last-child { border:none; }
+.conc-party-name { width:100px; font-size:0.82rem; font-weight:500; flex-shrink:0; }
+.conc-bar-wrap { flex:1; height:22px; background:rgba(255,255,255,0.04); border-radius:6px; overflow:hidden; position:relative; }
+.conc-bar { height:100%; border-radius:6px; transition:width 0.5s ease; min-width:2px; }
+.conc-bar-label { position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:0.72rem; font-weight:600; color:var(--text-light); }
+.conc-bar-label-outside { font-size:0.72rem; font-weight:600; color:var(--text-muted); margin-left:8px; flex-shrink:0; }
+.metric-explainer { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:18px 22px; margin-top:20px; }
+.metric-explainer h4 { font-size:0.8rem; font-weight:700; margin-bottom:10px; color:var(--node-border); }
+.metric-item { margin-bottom:10px; }
+.metric-item .metric-name { font-weight:700; font-size:0.82rem; }
+.metric-item .metric-def { color:var(--text-muted); font-size:0.78rem; line-height:1.5; }
+.metric-item .metric-scale { color:var(--text-muted); font-size:0.72rem; font-style:italic; margin-top:2px; }
+
 .donor-panel-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100; display:none; }
 .donor-panel-overlay.visible { display:flex; align-items:center; justify-content:center; }
 .donor-panel { background:var(--panel-bg); border:2px solid var(--node-border); border-radius:16px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; padding:28px; position:relative; }
@@ -104,11 +144,12 @@ body { background:var(--bg); color:var(--text-light); font-family:-apple-system,
 @media (max-width:768px) {
   .header { padding:16px 16px 8px; }
   .summary-grid { padding:10px 16px; grid-template-columns:repeat(2, 1fr); }
-  .controls, .filters { padding-left:16px; padding-right:16px; }
+  .controls, .filters, .share-bar { padding-left:16px; padding-right:16px; }
   .party-btn { padding:5px 8px; font-size:0.72rem; }
   .filter-chip { padding:4px 8px; font-size:0.7rem; }
   .section-divider { padding:24px 16px 12px; }
-  #bubble-container { padding:0 16px 30px; }
+  #bubble-container, #concentration-container { padding:0 16px 30px; }
+  .conc-party-name { width:70px; font-size:0.72rem; }
 }
 </style>
 </head>
@@ -118,6 +159,12 @@ body { background:var(--bg); color:var(--text-light); font-family:-apple-system,
   <h1>💰 Party <span>Money</span></h1>
   <p class="subtitle">Who funds UK politics? Explore every donation to every political party since 2022, sourced from the Electoral Commission's public register. Click to drill down, filter by donor type and year, and follow the money.</p>
   <div class="source">Data: <a href="https://search.electoralcommission.org.uk/" target="_blank">The Electoral Commission</a> · 14,062 donations · 2022–2026</div>
+</div>
+
+<div class="share-bar" id="shareBar">
+  <a class="share-btn x-btn" id="shareX" href="#" target="_blank" title="Share on X">𝕏 Share on X</a>
+  <a class="share-btn li-btn" id="shareLI" href="#" target="_blank" title="Share on LinkedIn">in Share on LinkedIn</a>
+  <button class="share-btn copy-btn" id="copyLink" onclick="copyShareLink()" title="Copy link to clipboard">🔗 Copy Link</button>
 </div>
 
 <div class="summary-grid" id="summaryGrid"></div>
@@ -149,6 +196,13 @@ body { background:var(--bg); color:var(--text-light); font-family:-apple-system,
 </div>
 <div class="bubble-tooltip" id="bubbleTooltip"></div>
 
+<div class="section-divider">
+  <h2>📊 Donor Concentration</h2>
+  <p>How dependent is each party on a few large donors? These metrics measure funding inequality — from grassroots breadth to single-donor dominance.</p>
+</div>
+
+<div id="concentration-container"></div>
+
 <div class="donor-panel-overlay" id="donorOverlay">
   <div class="donor-panel" id="donorPanel">
     <button class="close-btn" onclick="closePanel()">&times;</button>
@@ -156,12 +210,15 @@ body { background:var(--bg); color:var(--text-light); font-family:-apple-system,
   </div>
 </div>
 
+<div class="share-toast" id="shareToast">✅ Link copied to clipboard!</div>
+
 <div class="footer">
   <a href="https://github.com/jhammant/party-money" target="_blank">Source on GitHub</a> · 
   Electoral Commission public donation register · All figures GBP
 </div>
 
 <script>
+const SITE_URL = 'https://jhammant.github.io/party-money/';
 const PARTY_COLORS = {
   'Conservative and Unionist Party': '#0087DC',
   'Labour Party': '#DC241F',
@@ -194,12 +251,51 @@ function googleUrl(n) { return 'https://www.google.com/search?q='+encodeURICompo
 let RAW = null, DONORS = null;
 let currentParty = null;
 let expandedTypes = new Set(), allExpanded = false;
-
-// Filters
 let activeTypeFilters = new Set();
 let activeYearFilters = new Set();
-let expandedOthers = new Set(); // track which "Others" groups are expanded
+let expandedOthers = new Set();
 
+// ── Sharing ──
+function buildShareUrl() {
+  const params = new URLSearchParams();
+  if (currentParty) params.set('party', SHORT[currentParty]||currentParty);
+  if (activeTypeFilters.size > 0) params.set('dt', [...activeTypeFilters].join(','));
+  if (activeYearFilters.size > 0) params.set('yr', [...activeYearFilters].map(i=>RAW.years[i]).join(','));
+  const qs = params.toString();
+  return SITE_URL + (qs ? '?' + qs : '');
+}
+
+function buildShareText() {
+  let text = '£309M in UK political donations since 2022 — visualised.';
+  if (currentParty) {
+    const pi = RAW.partyList.indexOf(currentParty);
+    const t = RAW.donations.filter(d=>d[0]===pi).reduce((s,d)=>s+d[3],0);
+    text = `${SHORT[currentParty]||currentParty}: ${fmtGBP(t)} in political donations since 2022.`;
+  }
+  text += ' Follow the money →';
+  return text;
+}
+
+function updateShareLinks() {
+  const url = buildShareUrl();
+  const text = buildShareText();
+  document.getElementById('shareX').href = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+  document.getElementById('shareLI').href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+}
+
+function copyShareLink() {
+  const url = buildShareUrl();
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('copyLink');
+    btn.classList.add('copied');
+    btn.textContent = '✅ Copied!';
+    const toast = document.getElementById('shareToast');
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; btn.classList.remove('copied'); btn.textContent = '🔗 Copy Link'; }, 2000);
+  });
+}
+
+// ── Init ──
 async function init() {
   RAW = await (await fetch('tree-data.json')).json();
   DONORS = RAW.donors;
@@ -208,6 +304,8 @@ async function init() {
   buildPartySelector();
   selectParty(RAW.partyList[0]);
   renderBubbleChart();
+  renderConcentration();
+  updateShareLinks();
 }
 
 function getFiltered(partyIdx) {
@@ -230,8 +328,6 @@ function getAllFiltered() {
 function buildFilteredTreeData(partyIdx) {
   const filtered = getFiltered(partyIdx);
   const party = RAW.partyList[partyIdx];
-  
-  // Group by donor type
   const byType = {};
   let total = 0;
   filtered.forEach(d => {
@@ -241,7 +337,6 @@ function buildFilteredTreeData(partyIdx) {
     byType[typeName][d[1]] += d[3];
     total += d[3];
   });
-  
   const types = Object.entries(byType)
     .map(([type, donors]) => {
       const typeTotal = Object.values(donors).reduce((s,v)=>s+v, 0);
@@ -249,10 +344,9 @@ function buildFilteredTreeData(partyIdx) {
       const top = sorted.slice(0, 7).map(([n,v]) => ({name:n, value:Math.round(v*100)/100}));
       const rest = sorted.slice(7);
       if (rest.length > 0) {
-        const othersKey = type; // unique key for this Others group
+        const othersKey = type;
         const isExpanded = expandedOthers.has(othersKey);
         if (isExpanded) {
-          // Show all remaining donors
           rest.forEach(([n,v]) => top.push({name:n, value:Math.round(v*100)/100}));
           top.push({name: '▲ Show fewer', value: 0, isCollapse:true, othersKey});
         } else {
@@ -262,7 +356,6 @@ function buildFilteredTreeData(partyIdx) {
       return { type, total: Math.round(typeTotal*100)/100, donors: top };
     })
     .sort((a,b) => b.total - a.total);
-  
   return { party, total: Math.round(total*100)/100, count: filtered.length, types };
 }
 
@@ -270,20 +363,17 @@ function buildSummary() {
   const grid = document.getElementById('summaryGrid');
   const grandTotal = RAW.donations.reduce((s,d) => s+d[3], 0);
   const grandCount = RAW.donations.length;
-  
   let html = `<div class="summary-card" style="border-color:rgba(43,123,206,0.3)">
     <div class="party-name" style="color:var(--node-border)">All Parties</div>
     <div class="party-total" style="color:var(--node-border)">${fmtGBP(grandTotal)}</div>
     <div class="party-detail">${grandCount.toLocaleString()} donations · ${RAW.partyList.length} parties</div>
   </div>`;
-  
   const partyTotals = RAW.partyList.map((p,i) => {
     const t = RAW.donations.filter(d=>d[0]===i).reduce((s,d)=>s+d[3],0);
     const c = RAW.donations.filter(d=>d[0]===i).length;
     return {party:p, total:t, count:c};
   }).sort((a,b) => b.total-a.total);
   const maxT = partyTotals[0].total;
-  
   partyTotals.slice(0,7).forEach(({party,total,count}) => {
     const color = PARTY_COLORS[party]||'#888';
     html += `<div class="summary-card" style="border-color:${color}33" onclick="selectParty('${party.replace(/'/g,"\\'")}')">
@@ -315,18 +405,22 @@ function toggleFilter(kind, idx, el) {
   const set = kind === 'type' ? activeTypeFilters : activeYearFilters;
   if (set.has(idx)) { set.delete(idx); el.classList.remove('active'); }
   else { set.add(idx); el.classList.add('active'); }
-  renderTree();
-  renderBubbleChart();
-  updateFilterStats();
+  onFilterChange();
 }
 
 function clearFilters() {
   activeTypeFilters.clear();
   activeYearFilters.clear();
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  onFilterChange();
+}
+
+function onFilterChange() {
   renderTree();
   renderBubbleChart();
+  renderConcentration();
   updateFilterStats();
+  updateShareLinks();
 }
 
 function updateFilterStats() {
@@ -366,6 +460,7 @@ function selectParty(party) {
     b.style.background = a ? color+'25' : 'rgba(255,255,255,0.08)';
   });
   renderTree();
+  updateShareLinks();
 }
 
 function toggleExpandAll() {
@@ -407,22 +502,20 @@ function closePanel() { document.getElementById('donorOverlay').classList.remove
 document.getElementById('donorOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closePanel(); });
 document.addEventListener('keydown', e => { if(e.key==='Escape') closePanel(); });
 
+// ── Tree ──
 function renderTree() {
   const pi = RAW.partyList.indexOf(currentParty);
   const td = buildFilteredTreeData(pi);
   const partyColor = PARTY_COLORS[currentParty]||'#2B7BCE';
   const svg = d3.select('#tree-svg');
   svg.selectAll('*').remove();
-  
   if (td.types.length === 0) {
     svg.attr('width',400).attr('height',100);
     svg.append('text').attr('x',200).attr('y',50).attr('text-anchor','middle').attr('fill','#94a3b8').text('No donations match current filters');
     return;
   }
-  
   const nodeW=170, nodeH=62, vGap=70;
   const types = td.types;
-  
   let totalCols = 0, typeColSpans = [];
   types.forEach(t => {
     const exp = expandedTypes.has(t.type);
@@ -430,25 +523,19 @@ function renderTree() {
     typeColSpans.push(cols);
     totalCols += cols;
   });
-  
   const colW = nodeW + 16;
   const totalW = Math.max(totalCols * colW + 100, types.length * colW + 100, 500);
   const hasExp = expandedTypes.size > 0;
   const totalH = (hasExp ? 3 : 2) * (nodeH + vGap) + 60;
-  
   svg.attr('width', totalW).attr('height', totalH);
   const g = svg.append('g').attr('transform','translate(50,30)');
-  
   const usableW = totalW - 100;
   const rootX = usableW/2;
   const typeY = nodeH + vGap;
-  
   let cursor = 0, typePos = [];
   types.forEach((t,i) => { typePos.push(cursor + typeColSpans[i]/2); cursor += typeColSpans[i]; });
   const scale = usableW / totalCols;
-  
   drawNode(g, rootX, 0, {label:SHORT[currentParty]||currentParty, value:fmtFull(td.total), sub:td.count.toLocaleString()+' donations', isRoot:true, borderColor:partyColor, labelColor:partyColor}, nodeW+30, nodeH);
-  
   types.forEach((t,i) => {
     const tx = typePos[i]*scale;
     const exp = expandedTypes.has(t.type);
@@ -456,7 +543,6 @@ function renderTree() {
     drawOrthLink(g, rootX, nodeH, tx, typeY, partyColor);
     const tg = drawNode(g, tx, typeY, {label:t.type, value:fmtGBP(t.total), sub:pct, expandHint:exp?'▲ collapse':'▼ '+t.donors.length, borderColor:partyColor}, nodeW, nodeH);
     tg.style('cursor','pointer').on('click', ()=>toggleType(t.type));
-    
     if (exp) {
       const donorY = typeY + nodeH + vGap;
       let start=0; for(let j=0;j<i;j++) start+=typeColSpans[j];
@@ -467,11 +553,9 @@ function renderTree() {
         const isClick = !dn.isGroup && !dn.isCollapse && DONORS && DONORS[dn.name];
         const isOthersBtn = dn.isGroup && dn.othersKey;
         const isCollapseBtn = dn.isCollapse;
-        
         let nodeOpts = {label:trunc(dn.name,18), fullName:dn.name, value:dn.value>0?fmtGBP(dn.value):'', sub:dp>=0.1?dp.toFixed(1)+'%':'', info:isClick, googleLink:!dn.isGroup&&!dn.isCollapse, borderColor:partyColor};
         if (isOthersBtn) { nodeOpts.label = dn.othersCount+' Others'; nodeOpts.sub = '▼ click to expand'; }
         if (isCollapseBtn) { nodeOpts.label = '▲ Show fewer'; nodeOpts.value = ''; nodeOpts.sub = ''; }
-        
         const dg = drawNode(g, dx, donorY, nodeOpts, nodeW, nodeH);
         if (isClick) dg.style('cursor','pointer').on('click',()=>showDonorPanel(dn.name));
         if (isOthersBtn) dg.style('cursor','pointer').on('click',()=>{expandedOthers.add(dn.othersKey);renderTree();});
@@ -500,6 +584,7 @@ function drawOrthLink(p,x1,y1,x2,y2,c) {
   p.append('path').attr('class','link').attr('stroke',(c||'#fff')+'50').attr('d',`M${x1},${y1}V${m}H${x2}V${y2}`);
 }
 
+// ── Bubble Chart ──
 function renderBubbleChart() {
   const svg = d3.select('#bubble-svg');
   svg.selectAll('*').remove();
@@ -507,40 +592,225 @@ function renderBubbleChart() {
   const width = Math.min(window.innerWidth-64, 1200);
   const height = Math.min(550, width*0.55);
   svg.attr('width',width).attr('height',height);
-  
-  // Build from filtered data
-  const donorTotals = {};
-  const donorParty = {};
+  const donorTotals = {}, donorParty = {};
   const filtered = getAllFiltered();
   filtered.forEach(d => {
     const name = d[1], party = RAW.partyList[d[0]];
     if(!donorTotals[name]) { donorTotals[name]=0; donorParty[name]=party; }
     donorTotals[name] += d[3];
   });
-  
   const bubbleData = Object.entries(donorTotals)
     .filter(([,v]) => v >= 50000)
     .map(([name,value]) => ({name, value, party:donorParty[name], color:PARTY_COLORS[donorParty[name]]||'#888'}));
-  
   if (bubbleData.length === 0) {
     svg.append('text').attr('x',width/2).attr('y',height/2).attr('text-anchor','middle').attr('fill','#94a3b8').text('No donors match current filters');
     return;
   }
-  
   const pack = d3.pack().size([width-4,height-4]).padding(2);
   const root = d3.hierarchy({children:bubbleData}).sum(d=>d.value);
   pack(root);
-  
   const node = svg.selectAll('.bubble').data(root.leaves()).join('g').attr('class','bubble').attr('transform',d=>`translate(${d.x+2},${d.y+2})`);
-  
   node.append('circle').attr('r',d=>d.r).attr('fill',d=>d.data.color+'cc').attr('stroke',d=>d.data.color).attr('stroke-width',1).style('cursor','pointer')
     .on('mouseover',(e,d)=>{tooltip.style.display='block';tooltip.innerHTML=`<div class="tt-name">${d.data.name}</div><div class="tt-amount">${fmtFull(d.data.value)}</div><div class="tt-party">${SHORT[d.data.party]||d.data.party}</div>`;})
     .on('mousemove',e=>{tooltip.style.left=(e.clientX+12)+'px';tooltip.style.top=(e.clientY-10)+'px';})
     .on('mouseout',()=>{tooltip.style.display='none';})
     .on('click',(e,d)=>{if(DONORS[d.data.name])showDonorPanel(d.data.name);});
-  
   node.filter(d=>d.r>25).append('text').attr('text-anchor','middle').attr('dy','-0.2em').attr('fill','#fff').attr('font-size',d=>Math.min(d.r/4,11)+'px').attr('font-weight',600).attr('pointer-events','none').text(d=>trunc(d.data.name,Math.floor(d.r/4)));
   node.filter(d=>d.r>25).append('text').attr('text-anchor','middle').attr('dy','1em').attr('fill','#fff').attr('font-size',d=>Math.min(d.r/5,9)+'px').attr('opacity',0.8).attr('pointer-events','none').text(d=>fmtGBP(d.data.value));
+}
+
+// ── Concentration Metrics ──
+function computeConcentration() {
+  const filtered = getAllFiltered();
+  const results = [];
+  
+  RAW.partyList.forEach((party, pi) => {
+    const partyDons = filtered.filter(d => d[0] === pi);
+    if (partyDons.length === 0) return;
+    
+    // Aggregate by donor
+    const byDonor = {};
+    partyDons.forEach(d => { byDonor[d[1]] = (byDonor[d[1]]||0) + d[3]; });
+    const vals = Object.values(byDonor).sort((a,b) => b-a);
+    const total = vals.reduce((s,v) => s+v, 0);
+    const nDonors = vals.length;
+    if (total === 0) return;
+    
+    // HHI
+    const hhi = vals.reduce((s,v) => s + ((v/total)*100)**2, 0);
+    
+    // Top 10 donor share
+    const top10val = vals.slice(0, 10).reduce((s,v) => s+v, 0);
+    const top10pct = (top10val / total) * 100;
+    
+    // Gini coefficient
+    let gini = 0;
+    if (nDonors > 1) {
+      const sorted = [...vals].sort((a,b) => a-b);
+      const sum = sorted.reduce((s,v) => s+v, 0);
+      gini = (2 * sorted.reduce((s,v,i) => s + (i+1)*v, 0) - (nDonors+1) * sum) / (nDonors * sum);
+    }
+    
+    // Largest donor share
+    const topDonorPct = (vals[0] / total) * 100;
+    const topDonorName = Object.entries(byDonor).sort((a,b) => b[1]-a[1])[0][0];
+    
+    // Median donation (per donor)
+    const median = vals[Math.floor(nDonors/2)];
+    
+    results.push({
+      party, color: PARTY_COLORS[party]||'#888',
+      total, nDonors, hhi, top10pct, gini, topDonorPct, topDonorName, median,
+      avgDonation: total / nDonors
+    });
+  });
+  
+  return results.sort((a,b) => b.total - a.total);
+}
+
+function hhiVerdict(hhi) {
+  if (hhi >= 2500) return ['Highly concentrated', '#ef4444'];
+  if (hhi >= 1000) return ['Moderately concentrated', '#f59e0b'];
+  return ['Competitive / diverse', '#22c55e'];
+}
+
+function giniVerdict(g) {
+  if (g >= 0.8) return ['Very unequal', '#ef4444'];
+  if (g >= 0.6) return ['Unequal', '#f59e0b'];
+  return ['Relatively equal', '#22c55e'];
+}
+
+function renderConcentration() {
+  const container = document.getElementById('concentration-container');
+  const data = computeConcentration();
+  if (data.length === 0) { container.innerHTML = '<p style="text-align:center;color:var(--text-muted)">No data for current filters</p>'; return; }
+  
+  const maxHHI = Math.max(...data.map(d => d.hhi));
+  
+  let html = '';
+  
+  // ── HHI chart ──
+  html += `<h3 style="font-size:0.9rem;font-weight:700;margin-bottom:12px;padding-left:4px">Herfindahl–Hirschman Index (HHI)</h3>`;
+  data.forEach(d => {
+    const [verdict, vColor] = hhiVerdict(d.hhi);
+    const barW = Math.min((d.hhi / 10000) * 100, 100);
+    html += `<div class="conc-party-row">
+      <div class="conc-party-name" style="color:${d.color}">${SHORT[d.party]||d.party}</div>
+      <div class="conc-bar-wrap">
+        <div class="conc-bar" style="width:${barW}%;background:${d.color}cc"></div>
+        ${barW > 20 ? `<span class="conc-bar-label">${d.hhi.toFixed(0)}</span>` : ''}
+      </div>
+      ${barW <= 20 ? `<span class="conc-bar-label-outside">${d.hhi.toFixed(0)}</span>` : ''}
+      <span style="font-size:0.68rem;color:${vColor};font-weight:600;min-width:60px;text-align:right">${verdict.split('/')[0].trim()}</span>
+    </div>`;
+  });
+  
+  // ── Top 10 Donor Share ──
+  html += `<h3 style="font-size:0.9rem;font-weight:700;margin:28px 0 12px;padding-left:4px">Top 10 Donors — % of Total Funding</h3>`;
+  data.forEach(d => {
+    html += `<div class="conc-party-row">
+      <div class="conc-party-name" style="color:${d.color}">${SHORT[d.party]||d.party}</div>
+      <div class="conc-bar-wrap">
+        <div class="conc-bar" style="width:${d.top10pct}%;background:${d.color}cc"></div>
+        <span class="conc-bar-label">${d.top10pct.toFixed(1)}%</span>
+      </div>
+    </div>`;
+  });
+  
+  // ── Gini Coefficient ──
+  html += `<h3 style="font-size:0.9rem;font-weight:700;margin:28px 0 12px;padding-left:4px">Gini Coefficient (Donor Inequality)</h3>`;
+  data.forEach(d => {
+    const [verdict, vColor] = giniVerdict(d.gini);
+    const barW = d.gini * 100;
+    html += `<div class="conc-party-row">
+      <div class="conc-party-name" style="color:${d.color}">${SHORT[d.party]||d.party}</div>
+      <div class="conc-bar-wrap">
+        <div class="conc-bar" style="width:${barW}%;background:${d.color}cc"></div>
+        <span class="conc-bar-label">${d.gini.toFixed(2)}</span>
+      </div>
+      <span style="font-size:0.68rem;color:${vColor};font-weight:600;min-width:60px;text-align:right">${verdict}</span>
+    </div>`;
+  });
+  
+  // ── Biggest Single Donor ──
+  html += `<h3 style="font-size:0.9rem;font-weight:700;margin:28px 0 12px;padding-left:4px">Largest Single Donor — % of Party Total</h3>`;
+  data.forEach(d => {
+    html += `<div class="conc-party-row" style="cursor:pointer" onclick="${DONORS[d.topDonorName] ? `showDonorPanel('${d.topDonorName.replace(/'/g,"\\'")}')` : ''}">
+      <div class="conc-party-name" style="color:${d.color}">${SHORT[d.party]||d.party}</div>
+      <div class="conc-bar-wrap">
+        <div class="conc-bar" style="width:${d.topDonorPct}%;background:${d.color}cc"></div>
+        ${d.topDonorPct > 15 ? `<span class="conc-bar-label">${d.topDonorPct.toFixed(1)}%</span>` : ''}
+      </div>
+      ${d.topDonorPct <= 15 ? `<span class="conc-bar-label-outside">${d.topDonorPct.toFixed(1)}%</span>` : ''}
+      <span style="font-size:0.72rem;color:var(--text-muted);min-width:120px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${d.topDonorName}">${trunc(d.topDonorName, 20)}</span>
+    </div>`;
+  });
+  
+  // ── Summary cards ──
+  html += `<div class="conc-grid" style="margin-top:28px">`;
+  
+  // Most concentrated
+  const mostConc = [...data].sort((a,b) => b.hhi - a.hhi)[0];
+  const [mcVerdict, mcColor] = hhiVerdict(mostConc.hhi);
+  html += `<div class="conc-card" style="border-color:${mostConc.color}33">
+    <h3 style="color:${mostConc.color}">🎯 Most Concentrated</h3>
+    <div class="conc-value" style="color:${mostConc.color}">${SHORT[mostConc.party]||mostConc.party}</div>
+    <div class="conc-desc">HHI of <strong>${mostConc.hhi.toFixed(0)}</strong> — ${mostConc.nDonors} unique donors, largest donor (${trunc(mostConc.topDonorName,25)}) accounts for ${mostConc.topDonorPct.toFixed(1)}% of all funding.</div>
+    <span class="conc-verdict" style="background:${mcColor}22;color:${mcColor}">${mcVerdict}</span>
+  </div>`;
+  
+  // Most grassroots
+  const grassroots = [...data].filter(d=>d.nDonors>=20).sort((a,b) => a.hhi - b.hhi)[0];
+  if (grassroots) {
+    const [grVerdict, grColor] = hhiVerdict(grassroots.hhi);
+    html += `<div class="conc-card" style="border-color:${grassroots.color}33">
+      <h3 style="color:${grassroots.color}">🌱 Most Grassroots</h3>
+      <div class="conc-value" style="color:${grassroots.color}">${SHORT[grassroots.party]||grassroots.party}</div>
+      <div class="conc-desc">HHI of <strong>${grassroots.hhi.toFixed(0)}</strong> — ${grassroots.nDonors} unique donors. Median donation: ${fmtGBP(grassroots.median)}. Most evenly distributed funding base.</div>
+      <span class="conc-verdict" style="background:${grColor}22;color:${grColor}">${grVerdict}</span>
+    </div>`;
+  }
+  
+  // Most unequal
+  const mostUnequal = [...data].sort((a,b) => b.gini - a.gini)[0];
+  html += `<div class="conc-card" style="border-color:${mostUnequal.color}33">
+    <h3 style="color:${mostUnequal.color}">📐 Highest Inequality</h3>
+    <div class="conc-value" style="color:${mostUnequal.color}">${SHORT[mostUnequal.party]||mostUnequal.party}</div>
+    <div class="conc-desc">Gini coefficient of <strong>${mostUnequal.gini.toFixed(2)}</strong> — the biggest gap between large and small donors. Average donation ${fmtGBP(mostUnequal.avgDonation)} vs median ${fmtGBP(mostUnequal.median)}.</div>
+  </div>`;
+  
+  html += `</div>`;
+  
+  // ── Metric explainer ──
+  html += `<div class="metric-explainer">
+    <h4>📖 What Do These Metrics Mean?</h4>
+    
+    <div class="metric-item">
+      <div class="metric-name">HHI (Herfindahl–Hirschman Index)</div>
+      <div class="metric-def">Measures market concentration. Originally used in antitrust economics to assess monopoly power. Here, it measures how concentrated a party's donor base is — sum of squared donor shares.</div>
+      <div class="metric-scale">0 = infinitely many equal donors · 10,000 = one single donor · The US DOJ considers markets above 2,500 "highly concentrated"</div>
+    </div>
+    
+    <div class="metric-item">
+      <div class="metric-name">Top 10 Donor Share</div>
+      <div class="metric-def">The percentage of a party's total funding that comes from just their 10 biggest donors. Simple but powerful — shows how dependent a party is on a small inner circle of funders.</div>
+      <div class="metric-scale">Lower = more broadly funded · Higher = more dependent on a few large donors</div>
+    </div>
+    
+    <div class="metric-item">
+      <div class="metric-name">Gini Coefficient</div>
+      <div class="metric-def">A classic measure of inequality, usually applied to income distribution. Here it measures the gap between a party's biggest and smallest donors. A high Gini means a few donors give massive amounts while most give very little.</div>
+      <div class="metric-scale">0.00 = every donor gives exactly the same · 1.00 = one donor gives everything · For context, the UK's income Gini is ~0.35</div>
+    </div>
+    
+    <div class="metric-item">
+      <div class="metric-name">Largest Single Donor Share</div>
+      <div class="metric-def">What percentage of a party's total declared donations comes from one individual or organisation. A high figure means one entity has outsized financial influence over that party.</div>
+      <div class="metric-scale">Click any bar to see the donor's full donation history</div>
+    </div>
+  </div>`;
+  
+  container.innerHTML = html;
 }
 
 init();
