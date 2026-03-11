@@ -15,51 +15,70 @@
   --line-color: rgba(255,255,255,0.5);
   --text-light: #e2e8f0;
   --text-muted: #94a3b8;
+  --panel-bg: #232340;
+  --panel-border: #2B7BCE;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:var(--bg); color:var(--text-light); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; overflow-x:auto; }
 
-/* Header */
 .header { padding:24px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
 .header h1 { font-size:1.5rem; font-weight:700; }
 .header h1 span { color:var(--node-border); }
 .source { color:var(--text-muted); font-size:0.75rem; }
 .source a { color:var(--node-border); text-decoration:none; }
 
-/* Party selector */
 .party-selector { display:flex; gap:8px; padding:0 32px 24px; flex-wrap:wrap; }
 .party-btn { background:rgba(255,255,255,0.08); border:2px solid transparent; border-radius:8px; color:var(--text-light); padding:8px 16px; cursor:pointer; font-size:0.85rem; font-weight:500; transition:all 0.2s; }
 .party-btn:hover { background:rgba(255,255,255,0.15); }
 .party-btn.active { border-color:var(--node-border); background:rgba(43,123,206,0.15); }
 
-/* Tree container */
 #tree-container { width:100%; overflow-x:auto; padding:0 16px 40px; }
 #tree-svg { display:block; margin:0 auto; }
 
-/* Nodes */
 .node rect { fill:var(--node-fill); stroke:var(--node-border); stroke-width:2px; rx:10; ry:10; cursor:pointer; transition:filter 0.2s; }
 .node rect:hover { filter:drop-shadow(0 0 8px rgba(43,123,206,0.4)); }
+.node.leaf rect:hover { filter:drop-shadow(0 0 12px rgba(43,123,206,0.6)); cursor:pointer; }
 .node .label { fill:var(--text-dark); font-size:12px; font-weight:600; text-anchor:middle; pointer-events:none; }
 .node .value { fill:var(--text-blue); font-size:11px; font-weight:500; text-anchor:middle; pointer-events:none; }
 .node .pct { fill:var(--text-blue); font-size:10px; font-weight:400; text-anchor:middle; pointer-events:none; opacity:0.7; }
-
-/* Root node special */
-.node.root rect { fill:var(--node-fill); stroke:var(--node-border); stroke-width:3px; }
+.node.root rect { stroke-width:3px; }
 .node.root .label { font-size:14px; font-weight:700; }
 .node.root .value { font-size:13px; font-weight:600; }
 
-/* Links */
 .link { fill:none; stroke:var(--line-color); stroke-width:1.5px; }
 
-/* Footer */
+/* Donor detail panel */
+.donor-panel-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100; display:none; }
+.donor-panel-overlay.visible { display:flex; align-items:center; justify-content:center; }
+
+.donor-panel { background:var(--panel-bg); border:2px solid var(--panel-border); border-radius:16px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; padding:28px; position:relative; }
+.donor-panel .close-btn { position:absolute; top:12px; right:16px; background:none; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer; }
+.donor-panel .close-btn:hover { color:var(--text-light); }
+
+.donor-panel h2 { font-size:1.2rem; font-weight:700; margin-bottom:4px; padding-right:30px; }
+.donor-panel .donor-meta { color:var(--text-muted); font-size:0.8rem; margin-bottom:16px; }
+.donor-panel .donor-total { font-size:1.4rem; font-weight:700; color:var(--node-border); margin-bottom:4px; }
+.donor-panel .donor-parties { margin-bottom:16px; }
+.donor-panel .party-tag { display:inline-block; padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:600; margin:2px 4px 2px 0; }
+
+.donor-panel h3 { font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin:16px 0 8px; }
+
+.donations-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+.donations-table th { text-align:left; color:var(--text-muted); font-weight:500; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.03em; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.1); }
+.donations-table td { padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); }
+.donations-table .amt { color:var(--node-border); font-weight:600; text-align:right; white-space:nowrap; }
+.donations-table .date { color:var(--text-muted); white-space:nowrap; }
+.donations-table .dtype { color:var(--text-muted); font-size:0.8rem; }
+.donations-table tr:hover { background:rgba(255,255,255,0.03); }
+
 .footer { text-align:center; padding:32px; color:var(--text-muted); font-size:0.75rem; }
 .footer a { color:var(--node-border); text-decoration:none; }
 
-/* Mobile */
 @media (max-width:768px) {
   .header { padding:16px; }
   .party-selector { padding:0 16px 16px; }
   .party-btn { padding:6px 12px; font-size:0.8rem; }
+  .donor-panel { padding:20px; }
 }
 </style>
 </head>
@@ -75,10 +94,17 @@ body { background:var(--bg); color:var(--text-light); font-family:-apple-system,
   <svg id="tree-svg"></svg>
 </div>
 
+<div class="donor-panel-overlay" id="donorOverlay">
+  <div class="donor-panel" id="donorPanel">
+    <button class="close-btn" onclick="closePanel()">&times;</button>
+    <div id="donorContent"></div>
+  </div>
+</div>
+
 <div class="footer">
   <a href="https://github.com/jhammant/party-money" target="_blank">Source on GitHub</a> · 
   Data from the Electoral Commission's public register of donations · 
-  All figures in GBP
+  All figures in GBP · Click any donor to see full details
 </div>
 
 <script>
@@ -125,11 +151,14 @@ function truncate(s, max) {
 }
 
 let DATA = null;
+let DONORS = null;
 let currentParty = null;
 
 async function init() {
   const resp = await fetch('tree-data.json');
-  DATA = await resp.json();
+  const raw = await resp.json();
+  DATA = raw.parties;
+  DONORS = raw.donors;
   
   const selector = document.getElementById('partySelector');
   const parties = Object.keys(DATA).sort((a,b) => DATA[b].total - DATA[a].total);
@@ -138,7 +167,6 @@ async function init() {
     const btn = document.createElement('button');
     btn.className = 'party-btn';
     btn.textContent = SHORT_NAMES[party] || party;
-    btn.style.borderColor = 'transparent';
     btn.onclick = () => selectParty(party);
     btn.dataset.party = party;
     selector.appendChild(btn);
@@ -165,23 +193,19 @@ function selectParty(party) {
 
 function buildTreeData(party) {
   const d = DATA[party];
-  const partyColor = PARTY_COLORS[party] || '#2B7BCE';
-  
-  const children = d.types.map(t => {
-    const typeChildren = t.donors.map(donor => ({
+  const children = d.types.map(t => ({
+    name: t.type,
+    value: t.total,
+    pct: ((t.total / d.total) * 100),
+    children: t.donors.map(donor => ({
       name: truncate(donor.name, 28),
       fullName: donor.name,
       value: donor.value,
       pct: ((donor.value / d.total) * 100),
-    }));
-    
-    return {
-      name: t.type,
-      value: t.total,
-      pct: ((t.total / d.total) * 100),
-      children: typeChildren,
-    };
-  });
+      isGroup: donor.isGroup || false,
+      isLeaf: true,
+    })),
+  }));
   
   return {
     name: SHORT_NAMES[party] || party,
@@ -189,9 +213,64 @@ function buildTreeData(party) {
     value: d.total,
     count: d.count,
     isRoot: true,
-    children: children,
+    children,
   };
 }
+
+function showDonorPanel(donorName) {
+  const d = DONORS[donorName];
+  if (!d) return;
+  
+  const overlay = document.getElementById('donorOverlay');
+  const content = document.getElementById('donorContent');
+  
+  let partyTags = d.parties.map(p => {
+    const color = PARTY_COLORS[p] || '#888';
+    const name = SHORT_NAMES[p] || p;
+    return `<span class="party-tag" style="background:${color}22; color:${color}; border:1px solid ${color}44">${name}</span>`;
+  }).join('');
+  
+  let meta = [];
+  if (d.status) meta.push(d.status);
+  if (d.postcode) meta.push(d.postcode);
+  if (d.companyNum) meta.push(`Co. #${d.companyNum}`);
+  
+  let tableRows = d.donations.map(don => {
+    const partyColor = PARTY_COLORS[don.party] || '#888';
+    const partyName = SHORT_NAMES[don.party] || don.party;
+    return `<tr>
+      <td class="date">${don.date}</td>
+      <td><span style="color:${partyColor}">${partyName}</span></td>
+      <td class="dtype">${don.type}${don.nature ? ' · ' + don.nature : ''}</td>
+      <td class="amt">${fmtFull(don.value)}</td>
+    </tr>`;
+  }).join('');
+  
+  content.innerHTML = `
+    <h2>${donorName}</h2>
+    <div class="donor-meta">${meta.join(' · ')}</div>
+    <div class="donor-total">${fmtFull(d.total)}</div>
+    <div class="donor-meta">${d.count} donation${d.count !== 1 ? 's' : ''} across ${d.parties.length} part${d.parties.length !== 1 ? 'ies' : 'y'}</div>
+    <div class="donor-parties">${partyTags}</div>
+    <h3>All Donations</h3>
+    <table class="donations-table">
+      <thead><tr><th>Date</th><th>Party</th><th>Type</th><th style="text-align:right">Amount</th></tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+  `;
+  
+  overlay.classList.add('visible');
+}
+
+function closePanel() {
+  document.getElementById('donorOverlay').classList.remove('visible');
+}
+
+// Close on overlay click (not panel)
+document.getElementById('donorOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closePanel();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
 
 function renderTree(party) {
   const svg = d3.select('#tree-svg');
@@ -199,31 +278,23 @@ function renderTree(party) {
   
   const treeData = buildTreeData(party);
   const partyColor = PARTY_COLORS[party] || '#2B7BCE';
-  
   const root = d3.hierarchy(treeData);
   
-  // Count leaf nodes for width calculation
   const leaves = root.leaves().length;
-  const nodeW = 160, nodeH = 55;
+  const nodeW = 160, nodeH = 58;
   const hGap = 20, vGap = 80;
   
-  const treeWidth = Math.max(800, leaves * (nodeW + hGap));
+  const treeWidth = Math.max(900, leaves * (nodeW + hGap));
   const treeHeight = (root.height + 1) * (nodeH + vGap) + 80;
   
   const treeLayout = d3.tree()
     .size([treeWidth - 80, treeHeight - 120])
-    .separation((a, b) => {
-      return a.parent === b.parent ? 1 : 1.2;
-    });
+    .separation((a, b) => a.parent === b.parent ? 1 : 1.2);
   
   treeLayout(root);
   
-  const totalW = treeWidth;
-  const totalH = treeHeight;
-  
-  svg.attr('width', totalW).attr('height', totalH);
-  
-  const g = svg.append('g').attr('transform', `translate(40, 50)`);
+  svg.attr('width', treeWidth).attr('height', treeHeight);
+  const g = svg.append('g').attr('transform', 'translate(40, 50)');
   
   // Orthogonal links
   g.selectAll('.link')
@@ -241,35 +312,43 @@ function renderTree(party) {
   const node = g.selectAll('.node')
     .data(root.descendants())
     .join('g')
-    .attr('class', d => 'node' + (d.data.isRoot ? ' root' : ''))
-    .attr('transform', d => `translate(${d.x - nodeW/2}, ${d.y - nodeH/2})`);
+    .attr('class', d => 'node' + (d.data.isRoot ? ' root' : '') + (d.data.isLeaf ? ' leaf' : ''))
+    .attr('transform', d => `translate(${d.x - nodeW/2}, ${d.y - nodeH/2})`)
+    .on('click', (e, d) => {
+      if (d.data.isLeaf && !d.data.isGroup && DONORS[d.data.fullName]) {
+        showDonorPanel(d.data.fullName);
+      }
+    });
   
-  // Node rectangles
   node.append('rect')
-    .attr('width', nodeW)
-    .attr('height', nodeH)
-    .attr('rx', 10)
-    .attr('ry', 10)
-    .attr('stroke', d => d.data.isRoot ? partyColor : '#2B7BCE');
+    .attr('width', nodeW).attr('height', nodeH)
+    .attr('rx', 10).attr('ry', 10)
+    .attr('stroke', d => d.data.isRoot ? partyColor : '#2B7BCE')
+    .attr('stroke-width', d => d.data.isRoot ? 3 : 2);
   
-  // Root node gets party color border
-  node.filter(d => d.data.isRoot)
-    .select('rect')
-    .attr('stroke', partyColor)
-    .attr('stroke-width', 3);
+  // Click hint for leaf nodes
+  node.filter(d => d.data.isLeaf && !d.data.isGroup && DONORS[d.data.fullName])
+    .append('text')
+    .attr('x', nodeW - 10).attr('y', 14)
+    .attr('text-anchor', 'end')
+    .attr('fill', '#2B7BCE')
+    .attr('font-size', '10px')
+    .attr('opacity', 0.5)
+    .attr('pointer-events', 'none')
+    .text('ⓘ');
   
   // Labels
   node.append('text')
     .attr('class', 'label')
     .attr('x', nodeW/2)
-    .attr('y', d => d.data.pct !== undefined && !d.data.isRoot ? nodeH/2 - 8 : nodeH/2 - 4)
+    .attr('y', d => (d.data.pct !== undefined && !d.data.isRoot) ? nodeH/2 - 10 : nodeH/2 - 4)
     .text(d => truncate(d.data.name, 22));
   
   // Values
   node.append('text')
     .attr('class', 'value')
     .attr('x', nodeW/2)
-    .attr('y', d => d.data.pct !== undefined && !d.data.isRoot ? nodeH/2 + 8 : nodeH/2 + 12)
+    .attr('y', d => (d.data.pct !== undefined && !d.data.isRoot) ? nodeH/2 + 6 : nodeH/2 + 12)
     .text(d => d.data.isRoot ? fmtFull(d.data.value) : fmtGBP(d.data.value));
   
   // Percentage
@@ -277,10 +356,10 @@ function renderTree(party) {
     .append('text')
     .attr('class', 'pct')
     .attr('x', nodeW/2)
-    .attr('y', nodeH/2 + 22)
+    .attr('y', nodeH/2 + 20)
     .text(d => d.data.pct >= 0.1 ? `(${d.data.pct.toFixed(1)}%)` : '(<0.1%)');
   
-  // Root count
+  // Root donation count
   node.filter(d => d.data.isRoot)
     .append('text')
     .attr('class', 'pct')
